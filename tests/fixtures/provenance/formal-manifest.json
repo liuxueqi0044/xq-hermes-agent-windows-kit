@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "1.0",
+  "buildMode": "formal",
+  "releaseChannel": "stable",
+  "productVersion": "1.0.0-test",
+  "hermesReleaseTag": "v2026.8.27",
+  "hermesVersion": "0.20.6",
+  "upstreamCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "desktopBuildCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "runtimeInstallPin": { "type": "commit", "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+  "sourcePageUrl": "https://hermes-agent.nousresearch.com/official-test",
+  "officialAssetUrl": "https://hermes-assets.nousresearch.com/Hermes-Setup.exe?build=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "officialAssetName": "Hermes-Setup.exe",
+  "officialSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "licenseUrl": "https://raw.githubusercontent.com/NousResearch/hermes-agent/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/LICENSE",
+  "licenseSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+  "signatureStatus": "Valid",
+  "signature": {
+    "policy": "valid-or-explicit-waiver",
+    "status": "Valid",
+    "signerSubject": "CN=XQ Test Signer",
+    "signerThumbprint": "1111111111111111111111111111111111111111",
+    "timestampStatus": "Valid"
+  },
+  "supportedOs": ["Windows 11 x64"],
+  "buildDate": "2026-08-28T00:00:00Z",
+  "upstreamLicense": "MIT",
+  "xqTelemetry": false,
+  "runtimeInternetRequired": true
+}

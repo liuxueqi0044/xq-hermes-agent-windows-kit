@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "XQ trusted upstream sources",
+  "type": "object",
+  "required": ["schemaVersion", "rules"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["host", "pathPrefix", "purposes", "allowedQueryPatterns"],
+        "properties": {
+          "host": { "type": "string", "pattern": "^[a-z0-9.-]+$" },
+          "pathPrefix": { "type": "string", "pattern": "^/" },
+          "purposes": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "allowedQueryPatterns": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

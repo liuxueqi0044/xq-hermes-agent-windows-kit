@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "XQ Hermes Windows Kit product manifest",
+  "type": "object",
+  "required": ["schemaVersion", "buildMode", "productVersion", "hermesReleaseTag", "hermesVersion", "upstreamCommit", "desktopBuildCommit", "runtimeInstallPin", "sourcePageUrl", "officialAssetUrl", "officialAssetName", "officialSha256", "licenseUrl", "licenseSha256", "signatureStatus", "signature", "supportedOs", "buildDate", "upstreamLicense", "xqTelemetry", "runtimeInternetRequired"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "buildMode": { "enum": ["draft", "formal"] },
+    "releaseChannel": { "enum": ["stable"] },
+    "productVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?$" },
+    "hermesReleaseTag": { "type": "string", "pattern": "^v\\d{4}\\.\\d{1,2}\\.\\d{1,2}$" },
+    "hermesVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "upstreamCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "desktopBuildCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "runtimeInstallPin": {
+      "type": "object",
+      "required": ["type", "value"],
+      "properties": { "type": { "const": "commit" }, "value": { "type": "string", "pattern": "^[a-f0-9]{40}$" } },
+      "additionalProperties": false
+    },
+    "sourcePageUrl": { "type": "string", "format": "uri" },
+    "officialAssetUrl": { "type": "string", "format": "uri" },
+    "officialAssetName": { "type": "string", "pattern": "^[^\\/]+\\.exe$" },
+    "officialSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "licenseUrl": { "type": "string", "format": "uri" },
+    "licenseSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "signatureStatus": { "enum": ["Valid", "Unavailable"] },
+    "signature": {
+      "type": "object",
+      "required": ["policy", "status", "timestampStatus"],
+      "properties": {
+        "policy": { "const": "valid-or-explicit-waiver" },
+        "status": { "enum": ["Valid", "Unavailable"] },
+        "signerSubject": { "type": "string", "minLength": 1 },
+        "signerThumbprint": { "type": "string", "pattern": "^[A-Fa-f0-9]{40}$" },
+        "timestampStatus": { "enum": ["Valid", "Unavailable"] },
+        "waiverId": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "supportedOs": { "type": "array", "contains": { "const": "Windows 11 x64" } },
+    "buildDate": { "type": "string", "format": "date-time" },
+    "upstreamLicense": { "const": "MIT" },
+    "xqTelemetry": { "const": false },
+    "runtimeInternetRequired": { "const": true },
+    "commitRelationshipJustification": { "type": "string", "minLength": 1 },
+    "vmEvidence": { "type": "string", "minLength": 1 }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "buildMode": { "const": "formal" } } },
+      "then": { "required": ["releaseChannel"] }
+    },
+    {
+      "if": { "properties": { "signatureStatus": { "const": "Valid" } } },
+      "then": { "properties": { "signature": { "required": ["signerSubject", "signerThumbprint"] } } }
+    },
+    {
+      "if": { "properties": { "signatureStatus": { "const": "Unavailable" } } },
+      "then": { "properties": { "signature": { "required": ["waiverId"] } } }
+    }
+  ],
+  "additionalProperties": false
+}

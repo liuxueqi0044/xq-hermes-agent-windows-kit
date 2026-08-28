@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0",
+  "pages": [
+    {"source": "guide/00-start.md", "output": "00-开始这里.html", "title": "开始这里"},
+    {"source": "guide/01-first-start-and-model.md", "output": "02-配置指南/01-首次启动与模型配置.html", "title": "首次启动与模型配置"},
+    {"source": "guide/02-first-chat.md", "output": "02-配置指南/02-跑通第一次对话.html", "title": "跑通第一次对话"},
+    {"source": "guide/03-data-and-backup.md", "output": "02-配置指南/03-数据目录与备份.html", "title": "数据目录与备份"},
+    {"source": "guide/04-update-reinstall-uninstall.md", "output": "02-配置指南/04-更新重装与卸载.html", "title": "更新重装与卸载"},
+    {"source": "guide/05-faq.md", "output": "02-配置指南/05-常见问题.html", "title": "常见问题"},
+    {"source": "guide/06-diagnose-usage.md", "output": "03-诊断工具/诊断工具使用说明.html", "title": "诊断工具使用说明"},
+    {"source": "support/self-service.md", "output": "05-售后说明/自助版服务范围.html", "title": "自助版服务范围"},
+    {"source": "support/remote-install.md", "output": "05-售后说明/远程版服务范围.html", "title": "远程版服务范围"},
+    {"source": "support/before-support.md", "output": "05-售后说明/提交问题前请准备.html", "title": "提交问题前请准备"}
+  ],
+  "readme": {"output": "README.txt", "title": "XQ Hermes Agent Windows 配置包"}
+}

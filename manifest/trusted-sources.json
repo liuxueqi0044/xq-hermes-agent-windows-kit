@@ -1,0 +1,30 @@
+{
+  "$schema": "./trusted-sources.schema.json",
+  "schemaVersion": "1.0",
+  "rules": [
+    {
+      "host": "github.com",
+      "pathPrefix": "/NousResearch/hermes-agent",
+      "purposes": ["source-page", "tag", "commit", "release", "license"],
+      "allowedQueryPatterns": []
+    },
+    {
+      "host": "raw.githubusercontent.com",
+      "pathPrefix": "/NousResearch/hermes-agent",
+      "purposes": ["installer-script", "version-file", "license"],
+      "allowedQueryPatterns": []
+    },
+    {
+      "host": "hermes-agent.nousresearch.com",
+      "pathPrefix": "/",
+      "purposes": ["source-page", "documentation"],
+      "allowedQueryPatterns": []
+    },
+    {
+      "host": "hermes-assets.nousresearch.com",
+      "pathPrefix": "/",
+      "purposes": ["official-asset"],
+      "allowedQueryPatterns": ["^build=[a-f0-9]{12,40}$"]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "productVersion": "1.0.0-test",
+  "hermesVersion": "0.20.6-test",
+  "officialAssetName": "Hermes-Setup-test.exe",
+  "officialSha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "signatureStatus": "Unavailable",
+  "sourcePageUrl": "https://hermes-agent.nousresearch.com/"
+}

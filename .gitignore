@@ -1,0 +1,32 @@
+# Build-time directories
+/artifacts/
+/cache/
+/staging/
+/work/
+/evidence/private/
+
+# PowerShell and test output
+/TestResults/
+*.tmp
+*.log
+
+# Secrets and user data are never repository inputs
+.env
+.env.*
+!.env.example
+.ssh/
+*.pem
+*.key
+*.pfx
+*.p12
+sessions/
+logs/
+
+# Editors / OS
+.vs/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
