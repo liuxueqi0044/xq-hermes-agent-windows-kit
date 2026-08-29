@@ -363,7 +363,8 @@ try {
     foreach ($name in @(
             'schemaVersion', 'productVersion', 'releaseChannel', 'hermesReleaseTag', 'hermesVersion',
             'upstreamCommit', 'desktopBuildCommit', 'runtimeInstallPin', 'sourcePageUrl',
-            'officialAssetUrl', 'officialAssetName', 'officialSha256', 'signatureStatus', 'signature',
+            'officialAssetUrl', 'officialAssetName', 'officialSha256', 'licenseUrl', 'licenseSha256',
+            'signatureStatus', 'signature',
             'supportedOs', 'buildDate', 'upstreamLicense', 'xqTelemetry', 'runtimeInternetRequired')) {
         if ($manifest.PSObject.Properties[$name]) { $publicManifest[$name] = $manifest.$name }
     }

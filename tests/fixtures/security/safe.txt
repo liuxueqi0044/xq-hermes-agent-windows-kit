@@ -1,0 +1,1 @@
+Offline package fixture for https://example.com/ (RFC 2606).

@@ -1,0 +1,26 @@
+{
+  "$schema": "./support-scope.schema.json",
+  "schemaVersion": "1.0",
+  "product": "XQ Hermes Agent Windows Kit",
+  "supportedOs": ["Windows 11 x64"],
+  "tiers": {
+    "selfService": {
+      "included": ["locked official source and hash", "offline Chinese installation guidance", "read-only local diagnosis", "one text response based on a redacted report"],
+      "excluded": ["model accounts, keys, tokens, verification codes, subscriptions or fees", "remote control or credential entry", "cloud hosting, channels, Gateway, Cron, Skills, Computer Use, custom extensions", "third-party availability, price, speed or response quality"],
+      "completionStandard": ["Desktop opens", "version command returns", "user-owned model service connects", "one ordinary text conversation completes", "diagnosis has no runtime-blocking error"],
+      "assistanceMode": "self-service",
+      "documentMarkers": {"included": ["锁定版本", "诊断工具"], "excluded": ["模型账号", "远程控制", "云服务器"], "completionStandard": ["Desktop", "版本命令", "模型服务", "普通文本问答", "诊断"]}
+    },
+    "remoteBasicInstall": {
+      "included": ["Windows 11 x64 local Desktop/CLI installation", "connect one user-owned model service", "one ordinary text conversation and basic checks", "one installation-time basic error review"],
+      "excluded": ["buying or supplying credentials, accounts, subscriptions or credits", "cloud hosting or public service", "channels, workflow customization, third-party extensions or multi-user deployment", "third-party availability, quota or response-quality guarantees"],
+      "completionStandard": ["Desktop opens", "version command returns", "user-owned model service connects", "one ordinary text conversation completes", "diagnosis has no runtime-blocking error"],
+      "assistanceMode": "human-assisted",
+      "documentMarkers": {"included": ["Windows 11", "模型服务"], "excluded": ["用户本人", "云端", "消息渠道"], "completionStandard": ["Desktop", "版本命令", "模型服务", "普通文本问答", "诊断"]}
+    }
+  },
+  "firstReleaseExclusions": ["channels", "Gateway", "Cron", "third-party Skills", "Computer Use", "cloud hosting", "unattended remote access"],
+  "credentialPolicy": "The user enters passwords, verification codes, OAuth approval and keys; XQ never receives, copies, stores or fills complete credentials.",
+  "versionPolicy": "Each upstream update creates a new candidate and never overwrites an older artifact; M1 through M9 are repeated.",
+  "supportPolicy": "Support time, count and response method follow the purchase agreement; no permanent or unlimited promise."
+}

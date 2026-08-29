@@ -1,0 +1,197 @@
+name: Build package (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Existing immutable tag to verify; tags are never created or overwritten by CI.'
+        required: true
+        type: string
+      acceptance_json_path:
+        description: 'Reviewed repository-relative VM acceptance JSON path.'
+        required: true
+        type: string
+      acceptance_md_path:
+        description: 'Reviewed repository-relative VM acceptance Markdown path.'
+        required: true
+        type: string
+      release_manifest_path:
+        description: 'Reviewed repository-relative M10 release manifest path.'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - name: Install locked PowerShell tools
+        shell: pwsh
+        run: ./ci/Install-LockedTools.ps1 -LockPath ./ci/tool-versions.json
+      - name: Validate formal manifest before acquiring installer
+        shell: pwsh
+        run: |
+          Import-Module ./build/Common.psm1 -Force
+          $manifest = Read-XqJsonFile -Path ./manifest/product-manifest.json
+          $trusted = Get-XqTrustedSources -Path ./manifest/trusted-sources.json
+          Assert-XqManifest -Manifest $manifest -TrustedSources $trusted -Formal | Out-Null
+          New-Item -ItemType Directory -Force -Path evidence | Out-Null
+          Copy-Item -LiteralPath ./manifest/product-manifest.json -Destination ./evidence/formal-manifest.json -Force
+          Copy-Item -LiteralPath (Join-Path $env:XQ_LOCKED_MODULE_ROOT 'tool-integrity.json') -Destination ./evidence/tool-integrity.json -Force
+      - name: Resolve and bind official release metadata
+        shell: pwsh
+        run: ./build/Resolve-OfficialRelease.ps1 -ManifestPath ./manifest/product-manifest.json | Out-File evidence/resolution.json -Encoding utf8
+      # This is the only formal-installer acquisition step. It exists only in
+      # this manually dispatched workflow and is never present in validate.yml.
+      - name: Acquire verified official installer
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path evidence/cache | Out-Null
+          ./build/Fetch-OfficialRelease.ps1 -ManifestPath ./manifest/product-manifest.json -CacheDirectory evidence/cache | Out-File evidence/download.json -Encoding utf8
+      - name: Verify locked LICENSE and save evidence copy
+        shell: pwsh
+        run: |
+          Import-Module ./build/Common.psm1 -Force
+          $manifest = Read-XqJsonFile -Path ./manifest/product-manifest.json
+          $trusted = Get-XqTrustedSources -Path ./manifest/trusted-sources.json
+          $proof = Test-XqLicenseSourceProof -Manifest $manifest -TrustedSources $trusted
+          $license = Invoke-XqHttpChain -Uri ([string]$manifest.licenseUrl) -TrustedSources $trusted -Purpose license
+          $bytes = [byte[]]$license.Response.ContentBytes
+          if ($null -eq $bytes) { throw 'Locked LICENSE response did not contain bytes.' }
+          [IO.File]::WriteAllBytes((Join-Path (Get-Location) 'evidence/LICENSE'), $bytes)
+          $proof | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath evidence/license-proof.json -Encoding utf8
+      - name: Run M6 source gate after locked LICENSE is available
+        shell: pwsh
+        run: |
+          . ./security/Invoke-SecurityGate.ps1
+          $source = Invoke-XqSecurityGate -TargetType Source -Path (Get-Location).Path -RepositoryRoot (Get-Location).Path -ManifestPath ./manifest/product-manifest.json -LicensePath ./evidence/LICENSE
+          $source | ConvertTo-Json -Depth 12 | Set-Content evidence/m6-source.json -Encoding utf8
+          if ($source.status -ne 'PASS') { throw 'M6 source gate failed.' }
+      - name: Copy reviewed VM acceptance and release manifest inputs
+        shell: pwsh
+        env:
+          ACCEPTANCE_JSON_INPUT: ${{ inputs.acceptance_json_path }}
+          ACCEPTANCE_MD_INPUT: ${{ inputs.acceptance_md_path }}
+          RELEASE_MANIFEST_INPUT: ${{ inputs.release_manifest_path }}
+        run: |
+          foreach ($item in @(@($env:ACCEPTANCE_JSON_INPUT, 'vm-acceptance.json'), @($env:ACCEPTANCE_MD_INPUT, 'vm-acceptance.md'), @($env:RELEASE_MANIFEST_INPUT, 'release-manifest.json'))) {
+            $relative = [string]$item[0]
+            if ([string]::IsNullOrWhiteSpace($relative) -or [IO.Path]::IsPathRooted($relative) -or $relative -match '(^|[\\/])\.\.(?:[\\/]|$)') { throw 'Review input paths must be non-empty repository-relative paths.' }
+            $source = [IO.Path]::GetFullPath((Join-Path (Get-Location) $relative))
+            $separator = [IO.Path]::DirectorySeparatorChar
+            $workspace = [IO.Path]::GetFullPath((Get-Location).Path).TrimEnd($separator) + $separator
+            if (-not $source.StartsWith($workspace, [StringComparison]::OrdinalIgnoreCase) -or -not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "Reviewed input is missing or escapes the repository: $relative" }
+            Copy-Item -LiteralPath $source -Destination (Join-Path (Get-Location) ('evidence/' + [string]$item[1])) -Force
+          }
+      - name: Verify installer identity and Authenticode policy
+        shell: pwsh
+        run: |
+          $download = Get-Content evidence/download.json -Raw | ConvertFrom-Json
+          ./build/Verify-Artifact.ps1 -ManifestPath ./manifest/product-manifest.json -ArtifactPath ([string]$download.cachePath) -SignatureReportPath evidence/signature-report.json
+      - name: Render offline content
+        shell: pwsh
+        run: ./build/Render-OfflineContent.ps1 -ProjectRoot . -ManifestPath ./manifest/product-manifest.json -OutputRoot ./evidence/rendered
+      - name: Run M1-M10 offline gates
+        shell: pwsh
+        run: |
+          ./tests/Run-All.ps1 -ResultPath evidence/m1-m10.xml -SummaryJsonPath evidence/m1-m10.json -SummaryTextPath evidence/m1-m10.txt -CoveragePath evidence/m1-m10-coverage.xml
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item evidence/m1-m10.json evidence/m1-m7.json -Force
+      - name: Assemble deterministic candidate package
+        shell: pwsh
+        run: |
+          $download = Get-Content evidence/download.json -Raw | ConvertFrom-Json
+          $artifact = [string]$download.cachePath
+          $candidate = ./build/Build-Package.ps1 -ManifestPath ./manifest/product-manifest.json -VerifiedArtifactPath $artifact -RenderedContentPath ./evidence/rendered -DiagnoseToolPath ./tools/Hermes-XQ-Diagnose.ps1 -HermesLicensePath ./evidence/LICENSE -OutputDirectory ./artifacts
+          $relativeZip = 'artifacts/' + [IO.Path]::GetFileName([string]$candidate.PackagePath)
+          [ordered]@{ status = 'verified'; packagePath = $relativeZip; packageSha256 = [string]$candidate.PackageSha256; createdUtc = [DateTime]::UtcNow.ToString('o') } | ConvertTo-Json | Set-Content -LiteralPath evidence/candidate.json -Encoding utf8
+          . ./security/Invoke-SecurityGate.ps1
+          $stagingRoot = Join-Path (Get-Location) 'evidence/staging-unpacked'
+          Expand-Archive -LiteralPath ([string]$candidate.PackagePath) -DestinationPath $stagingRoot -Force
+          $stagingLicense = (Get-ChildItem -LiteralPath $stagingRoot -Filter HERMES-LICENSE.txt -File -Recurse | Select-Object -First 1).FullName
+          if ([string]::IsNullOrWhiteSpace($stagingLicense)) { throw 'Package staging LICENSE is missing.' }
+          $staging = Invoke-XqSecurityGate -TargetType Staging -Path $stagingRoot -RepositoryRoot (Get-Location).Path -ManifestPath ./manifest/product-manifest.json -LicensePath $stagingLicense
+          $staging | ConvertTo-Json -Depth 12 | Set-Content evidence/m6-staging.json -Encoding utf8
+          if ($staging.status -ne 'PASS') { throw 'M6 staging gate failed.' }
+          $zip = Invoke-XqSecurityGate -TargetType Zip -Path ([string]$candidate.PackagePath) -RepositoryRoot (Get-Location).Path -ManifestPath ./manifest/product-manifest.json -LicensePath $stagingLicense
+          $zip | ConvertTo-Json -Depth 12 | Set-Content evidence/m6-zip.json -Encoding utf8
+          if ($zip.status -ne 'PASS') { throw 'M6 package ZIP gate failed.' }
+      - name: Evaluate M10 governance gate before final evidence scan
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          ./acceptance/Validate-VmAcceptance.ps1 -AcceptancePath ./evidence/vm-acceptance.json -ManifestPath ./manifest/product-manifest.json
+          Import-Module ./build/Common.psm1 -Force
+          $governance = ./governance/Invoke-ReleaseGate.ps1 -ManifestPath ./manifest/product-manifest.json -AcceptancePath ./evidence/vm-acceptance.md -CandidateArtifactPath (Get-ChildItem artifacts -Filter *.zip -File | Select-Object -First 1).FullName -ReleaseDestinationPath ./artifacts/release-created.marker -ReleaseManifestPath ./evidence/release-manifest.json
+          Write-XqJsonAtomic -InputObject $governance -Path ./evidence/governance-gate.json | Out-Null
+      - name: Run M6 evidence gate after governance evidence is fixed
+        shell: pwsh
+        run: |
+          . ./security/Invoke-SecurityGate.ps1
+          $ev = Invoke-XqSecurityGate -TargetType Evidence -Path (Join-Path (Get-Location) 'evidence') -RepositoryRoot (Get-Location).Path -ManifestPath ./manifest/product-manifest.json -LicensePath ./evidence/LICENSE
+          $ev | ConvertTo-Json -Depth 12 | Set-Content evidence/m6-evidence.json -Encoding utf8
+          if ($ev.status -ne 'PASS') { throw 'M6 evidence gate failed.' }
+      - name: Require release evidence (no evidence means hard failure)
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          ./ci/Test-ReleaseEvidence.ps1 -EvidenceRoot ./evidence -CandidateArtifactPath (Get-ChildItem artifacts -Filter *.zip -File | Select-Object -First 1).FullName -ReleaseDestinationPath ./artifacts/release-created.marker -ReleaseManifestPath ./evidence/release-manifest.json -ReleaseTag $env:RELEASE_TAG
+      - name: Upload candidate and evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: xq-release-candidate
+          path: |
+            artifacts/
+            evidence/
+          if-no-files-found: error
+
+  release:
+    needs: package
+    if: ${{ needs.package.result == 'success' }}
+    runs-on: windows-latest
+    environment: release-approval
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository for release metadata
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - name: Download candidate and evidence
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: xq-release-candidate
+          path: .
+      - name: Recheck all release gates after environment approval
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          $zip = (Get-ChildItem artifacts -Filter *.zip -File | Select-Object -First 1).FullName
+          ./ci/Test-ReleaseEvidence.ps1 -EvidenceRoot ./evidence -CandidateArtifactPath $zip -ReleaseDestinationPath ./artifacts/release-created.marker -ReleaseManifestPath ./evidence/release-manifest.json -ReleaseTag $env:RELEASE_TAG
+      - name: Create draft release only
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          $tag = [string]$env:RELEASE_TAG
+          $zip = Get-ChildItem artifacts -Filter *.zip -File | Select-Object -First 1
+          if ($null -eq $zip) { throw 'Candidate ZIP is missing.' }
+          if ([string]::IsNullOrWhiteSpace($tag)) { throw 'An existing immutable release_tag input is required.' }
+          $viewOutput = gh release view $tag 2>&1
+          if ($LASTEXITCODE -eq 0) { throw 'A release already exists for this immutable tag; refusing to overwrite it.' }
+          if (($viewOutput -join "`n") -notmatch '(?i)not found|404') { throw 'Unable to prove that the immutable tag has no existing release.' }
+          # The release owner creates and reviews this tag before dispatch. gh
+          # refuses a missing tag with --verify-tag; no force/overwrite flags are used.
+          gh release create $tag $zip.FullName --verify-tag --draft --title "XQ Hermes Agent $tag" --notes-file evidence/vm-acceptance.md

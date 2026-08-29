@@ -1,0 +1,18 @@
+{
+  "NOT_VALID_RELEASE_MANIFEST": "Template only; never use for RELEASED.",
+  "schemaVersion": "1.0",
+  "releaseId": "XQ-0.0.0-Hermes-REPLACE-ME",
+  "releaseTag": "xq-vREPLACE-ME-hermes-REPLACE-ME",
+  "tagCommitSha": "0000000000000000000000000000000000000000",
+  "productVersion": "0.0.0",
+  "hermesVersion": "REPLACE-ME",
+  "semver": {"major": 0, "minor": 0, "patch": 0},
+  "supportMatrix": {"status": "PENDING_VM_ACCEPTANCE", "hermesVersion": "REPLACE-ME", "supportedOs": ["Windows 11 x64"]},
+  "supportScopeSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "acceptanceRecord": {"path": "acceptance/vm-acceptance.json", "sha256": "0000000000000000000000000000000000000000000000000000000000000000", "state": "CANDIDATE"},
+  "artifact": {"path": "artifacts/REPLACE-ME.zip", "sha256": "0000000000000000000000000000000000000000000000000000000000000000", "immutable": false},
+  "releaseStatus": "CANDIDATE",
+  "knownIssues": ["Real Chinese and English Windows 11 VM acceptance is pending."],
+  "unsupported": ["channels", "Gateway", "Cron", "third-party Skills", "Computer Use", "cloud hosting", "unattended remote access"],
+  "oldArtifactPolicy": "Never overwrite an existing artifact; publish a new candidate and rerun M1-M9."
+}

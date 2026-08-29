@@ -1,0 +1,8 @@
+{
+  "$schema": "./support-matrix.schema.json",
+  "schemaVersion": "1.0",
+  "productVersion": "1.0.0",
+  "supportedOs": ["Windows 11 x64"],
+  "entries": [{"hermesVersion": "0.20.6", "runtimeCommit": "PENDING_REAL_VM", "status": "PENDING_VM_ACCEPTANCE", "acceptanceRecord": "acceptance/vm-acceptance.json"}],
+  "policy": "A row is publishable only after both zh-CN and en-US clean Windows 11 x64 VM acceptance passes; upstream updates create a new row and artifact."
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xq.invalid/schemas/support-scope.schema.json",
+  "title": "XQ support scope single source",
+  "type": "object",
+  "required": ["schemaVersion", "product", "supportedOs", "tiers", "firstReleaseExclusions", "credentialPolicy", "versionPolicy", "supportPolicy"],
+  "properties": {
+    "schemaVersion": {"const": "1.0"},
+    "product": {"type": "string", "minLength": 1},
+    "supportedOs": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "tiers": {"type": "object", "required": ["selfService", "remoteBasicInstall"], "additionalProperties": {"$ref": "#/$defs/tier"}},
+    "firstReleaseExclusions": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "credentialPolicy": {"type": "string", "minLength": 1},
+    "versionPolicy": {"type": "string", "minLength": 1},
+    "supportPolicy": {"type": "string", "minLength": 1}
+  },
+  "$defs": {"tier": {"type": "object", "required": ["included", "excluded", "completionStandard", "assistanceMode", "documentMarkers"], "properties": {"included": {"type": "array", "items": {"type": "string"}}, "excluded": {"type": "array", "items": {"type": "string"}}, "completionStandard": {"type": "array", "minItems": 1, "items": {"type": "string"}}, "assistanceMode": {"type": "string", "minLength": 1}, "documentMarkers": {"type": "object", "required": ["included", "excluded", "completionStandard"], "properties": {"included": {"type": "array", "items": {"type": "string"}}, "excluded": {"type": "array", "items": {"type": "string"}}, "completionStandard": {"type": "array", "minItems": 1, "items": {"type": "string"}}}}}}}
+}

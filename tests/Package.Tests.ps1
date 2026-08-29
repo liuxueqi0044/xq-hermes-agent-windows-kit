@@ -88,6 +88,12 @@ Describe 'Build-Package' {
             @($zip.Entries.FullName) | Should -Contain 'XQ-Hermes-Agent-Windows-v1.0.0/01-Hermes官方安装器/Hermes-Setup.exe'
             @($zip.Entries.FullName) | Should -Contain 'XQ-Hermes-Agent-Windows-v1.0.0/04-许可与来源/SHA256SUMS.txt'
             @($zip.Entries.FullName) | Should -Contain 'XQ-Hermes-Agent-Windows-v1.0.0/04-许可与来源/THIRD-PARTY-NOTICES/'
+            $sourceEntry = $zip.GetEntry('XQ-Hermes-Agent-Windows-v1.0.0/04-许可与来源/SOURCE-AND-VERSION.json')
+            $sourceReader = [IO.StreamReader]::new($sourceEntry.Open(), [Text.Encoding]::UTF8)
+            try { $sourceManifest = $sourceReader.ReadToEnd() | ConvertFrom-Json }
+            finally { $sourceReader.Dispose() }
+            $sourceManifest.licenseUrl | Should -BeExactly $manifest.licenseUrl
+            $sourceManifest.licenseSha256 | Should -BeExactly $manifest.licenseSha256
         }
         finally { $zip.Dispose() }
     }

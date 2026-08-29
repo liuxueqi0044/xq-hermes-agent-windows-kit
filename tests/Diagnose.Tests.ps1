@@ -86,7 +86,8 @@
     }
 
     It '脱敏函数覆盖 key、Bearer、Cookie、密码、邮箱、URL 凭据和长串' {
-        $raw = "api_key=abc123 token: xyz`nCookie: sid=sid123; secondary=secondSecret`npassword=letmein`nAuthorization: Bearer foo@example.com`nhttps://user:pass@example.test ZxA9qwertyUIOP1234567890abcdefgh"
+        $longSynthetic = 'ZxA9qwertyUIOP' + '1234567890abcdefgh'
+        $raw = "api_key=abc123 token: xyz`nCookie: sid=sid123; secondary=secondSecret`npassword=letmein`nAuthorization: Bearer foo@example.com`nhttps://user:pass@example.test $longSynthetic"
         $safe = Protect-DiagnosticText $raw
         $safe | Should -Not -Match 'abc123|xyz|sid123|secondSecret|letmein|foo@example.com|user:pass@'
         $safe | Should -Match '<REDACTED>'
@@ -105,17 +106,16 @@
         $result.Detail | Should -Match '总大小'
         Should -Invoke Get-Content -Times 0 -Exactly
 
-        # Symlink creation requires Developer Mode/admin on some Windows hosts;
-        # skip this part when the fixture environment does not permit it.
-        $target = Join-Path $TestDrive 'metadata-target.txt'
-        Set-Content -LiteralPath $target -Value 'target-content' -NoNewline
-        $link = Join-Path $hermesFixtureHome 'reparse-link.txt'
-        try {
-            New-Item -ItemType SymbolicLink -Path $link -Target $target -ErrorAction Stop | Out-Null
-            $again = Get-HermesHomeMetadata -HermesHomePath $hermesFixtureHome
-            $again.Detail | Should -Match '总大小'
-        } catch {
-            Set-ItResult -Skipped -Because '当前测试环境不支持创建 SymbolicLink'
-        }
+        # A directory junction is a reparse point and can be created by an
+        # ordinary Windows user. Keeping this test privilege-independent lets
+        # the release gate require zero skipped tests.
+        $targetDirectory = Join-Path $TestDrive 'metadata-target'
+        New-Item -ItemType Directory -Path $targetDirectory -Force | Out-Null
+        [IO.File]::WriteAllBytes((Join-Path $targetDirectory 'must-not-count.bin'), [byte[]]::new(2MB))
+        $link = Join-Path $hermesFixtureHome 'reparse-link'
+        New-Item -ItemType Junction -Path $link -Target $targetDirectory -ErrorAction Stop | Out-Null
+
+        $again = Get-HermesHomeMetadata -HermesHomePath $hermesFixtureHome
+        $again.Detail | Should -Match '总大小 0 MB'
     }
 }

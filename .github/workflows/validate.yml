@@ -1,0 +1,45 @@
+name: Validate
+
+on:
+  pull_request:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Install locked PowerShell tools
+        shell: pwsh
+        run: ./ci/Install-LockedTools.ps1 -LockPath ./ci/tool-versions.json
+      - name: Validate CI policy
+        shell: pwsh
+        run: ./ci/Validate-CI.ps1 -OutputPath TestResults/ci-policy.json
+      - name: Validate manifest schema and AST
+        shell: pwsh
+        run: |
+          Import-Module ./build/Common.psm1 -Force
+          $manifest = Read-XqJsonFile -Path ./manifest/product-manifest.json
+          $trusted = Get-XqTrustedSources -Path ./manifest/trusted-sources.json
+          $check = Test-XqManifest -Manifest $manifest -TrustedSources $trusted
+          if (-not $check.IsValid) { throw ($check.Errors -join '; ') }
+          $files = @(Get-ChildItem -Path build,tools,security,ci,acceptance,governance -Filter *.ps1 -File -Recurse)
+          $errors = @()
+          foreach ($file in $files) { $errors += @(Invoke-ScriptAnalyzer -Path $file.FullName -Settings ./ci/PSScriptAnalyzerSettings.psd1) }
+          if ($errors.Count -gt 0) { $errors | Format-Table | Out-String | Write-Error; exit 1 }
+      - name: Run offline M1-M10 test suites
+        shell: pwsh
+        run: ./tests/Run-All.ps1
+      - name: Upload sanitized reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: xq-validation-reports
+          path: TestResults/
+          if-no-files-found: warn

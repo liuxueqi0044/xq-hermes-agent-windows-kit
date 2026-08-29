@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xq.invalid/schemas/vm-acceptance.schema.json",
+  "title": "XQ Hermes Windows 11 VM acceptance record",
+  "type": "object",
+  "required": ["schemaVersion", "recordId", "state", "productVersion", "hermesVersion", "manifestSha256", "vmMatrix", "steps", "runtime", "evidence", "credentialRevocation", "vmRollback", "signoff", "execution"],
+  "properties": {
+    "schemaVersion": {"const": "1.0"},
+    "recordId": {"type": "string", "minLength": 8},
+    "state": {"enum": ["DRAFT", "IN_PROGRESS", "PASSED", "FAILED"]},
+    "previousState": {"enum": ["DRAFT", "IN_PROGRESS", "PASSED", "FAILED"]},
+    "productVersion": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "hermesVersion": {"type": "string", "minLength": 1},
+    "manifestSha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "expiresAtUtc": {"type": "string", "format": "date-time"},
+    "vmMatrix": {"type": "array", "minItems": 2, "items": {"type": "object", "required": ["locale", "os", "architecture", "result", "machineEvidenceId", "baselineEvidenceRef"], "properties": {"locale": {"enum": ["zh-CN", "en-US"]}, "os": {"const": "Windows 11"}, "architecture": {"const": "x64"}, "result": {"enum": ["PASS", "FAIL", "PENDING"]}, "machineEvidenceId": {"type": "string", "minLength": 1}, "baselineEvidenceRef": {"type": "string", "minLength": 1}}}},
+    "steps": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["id", "result", "evidenceRef"], "properties": {"id": {"enum": ["offline-content", "source-hash-signature", "install-first-run", "runtime-pin", "user-model-config", "ordinary-chat", "version-doctor", "diagnostic-redaction", "reboot-reopen", "reinstall-update-data", "uninstall-behavior", "system-baseline-diff", "credential-revoke-vm-rollback"]}, "result": {"enum": ["PASS", "FAIL", "PENDING", "N/A"]}, "evidenceRef": {"type": "string", "minLength": 1}}}},
+    "runtime": {"type": "object", "required": ["commit", "version", "manifestCommit", "consistent"], "properties": {"commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"}, "version": {"type": "string"}, "manifestCommit": {"type": "string", "pattern": "^[0-9a-f]{40}$"}, "consistent": {"const": true}}},
+    "evidence": {"type": "object", "required": ["screenshotIndex", "screenshotsRedacted"], "properties": {"screenshotIndex": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}, "screenshotsRedacted": {"const": true}}},
+    "credentialRevocation": {"type": "object", "required": ["completed", "declaration"], "properties": {"completed": {"type": "boolean"}, "declaration": {"type": "string", "minLength": 1}}},
+    "vmRollback": {"type": "object", "required": ["completed", "declaration"], "properties": {"completed": {"type": "boolean"}, "declaration": {"type": "string", "minLength": 1}}},
+    "signoff": {"type": "object", "required": ["name", "signature", "signedAtUtc"], "properties": {"name": {"type": "string", "minLength": 1}, "signature": {"type": "string", "minLength": 1}, "signedAtUtc": {"type": "string", "format": "date-time"}}},
+    "execution": {"type": "object", "required": ["humanVerified", "vmEvidenceId", "isDevelopmentMachine"], "properties": {"humanVerified": {"type": "boolean"}, "vmEvidenceId": {"type": "string", "minLength": 1}, "isDevelopmentMachine": {"type": "boolean"}}}
+  },
+  "allOf": [{"if": {"properties": {"state": {"const": "PASSED"}}}, "then": {"properties": {"steps": {"minItems": 13}}}}]
+}

@@ -1,0 +1,18 @@
+{
+  "NOT_VALID_EVIDENCE": "Template only. Replace every placeholder with evidence from both real clean Chinese and English Windows 11 x64 VMs; this file can never authorize release.",
+  "schemaVersion": "1.0",
+  "recordId": "REPLACE-ME",
+  "state": "DRAFT",
+  "productVersion": "0.0.0",
+  "hermesVersion": "REPLACE-ME",
+  "manifestSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "expiresAtUtc": "1970-01-01T00:00:00Z",
+  "vmMatrix": [{"locale": "zh-CN", "os": "Windows 11", "architecture": "x64", "result": "PENDING", "machineEvidenceId": "REPLACE-ME", "baselineEvidenceRef": "REPLACE-ME"}, {"locale": "en-US", "os": "Windows 11", "architecture": "x64", "result": "PENDING", "machineEvidenceId": "REPLACE-ME", "baselineEvidenceRef": "REPLACE-ME"}],
+  "steps": [{"id": "offline-content", "result": "PENDING", "evidenceRef": "REPLACE-ME"}, {"id": "source-hash-signature", "result": "PENDING", "evidenceRef": "REPLACE-ME"}, {"id": "install-first-run", "result": "PENDING", "evidenceRef": "REPLACE-ME"}, {"id": "runtime-pin", "result": "PENDING", "evidenceRef": "REPLACE-ME"}, {"id": "user-model-config", "result": "PENDING", "evidenceRef": "REPLACE-ME"}, {"id": "ordinary-chat", "result": "PENDING", "evidenceRef": "REPLACE-ME"}, {"id": "version-doctor", "result": "PENDING", "evidenceRef": "REPLACE-ME"}, {"id": "diagnostic-redaction", "result": "PENDING", "evidenceRef": "REPLACE-ME"}, {"id": "reboot-reopen", "result": "PENDING", "evidenceRef": "REPLACE-ME"}, {"id": "reinstall-update-data", "result": "PENDING", "evidenceRef": "REPLACE-ME"}, {"id": "uninstall-behavior", "result": "PENDING", "evidenceRef": "REPLACE-ME"}, {"id": "system-baseline-diff", "result": "PENDING", "evidenceRef": "REPLACE-ME"}, {"id": "credential-revoke-vm-rollback", "result": "PENDING", "evidenceRef": "REPLACE-ME"}],
+  "runtime": {"commit": "0000000000000000000000000000000000000000", "version": "REPLACE-ME", "manifestCommit": "0000000000000000000000000000000000000000", "consistent": false},
+  "evidence": {"screenshotIndex": [], "screenshotsRedacted": false},
+  "credentialRevocation": {"completed": false, "declaration": "REPLACE-ME"},
+  "vmRollback": {"completed": false, "declaration": "REPLACE-ME"},
+  "signoff": {"name": "REPLACE-ME", "signature": "REPLACE-ME", "signedAtUtc": "1970-01-01T00:00:00Z"},
+  "execution": {"humanVerified": false, "vmEvidenceId": "REPLACE-ME", "isDevelopmentMachine": true}
+}

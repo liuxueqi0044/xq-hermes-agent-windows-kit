@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schemaVersion": "1.0",
+  "tools": {
+    "Pester": {
+      "version": "5.7.1",
+      "repository": "PSGallery",
+      "packageHashSource": "PSGallery exact package endpoint /api/v2/package/Pester/5.7.1",
+      "packageSha256": "4a27904c6814a5fbe4758f8e49861f6a1994aee77b71165a5c43c0371ba6c580",
+      "packageBytes": 325233,
+      "packageHashVerification": "Download exact nupkg, verify SHA256 and byte length, then install from the verified local archive"
+    },
+    "PSScriptAnalyzer": {
+      "version": "1.25.0",
+      "repository": "PSGallery",
+      "packageHashSource": "PSGallery exact package endpoint /api/v2/package/PSScriptAnalyzer/1.25.0",
+      "packageSha256": "14e634c828eb98efb9f40b2918ba90f139ed5eccdf663a2a747736d996995d60",
+      "packageBytes": 14658674,
+      "packageHashVerification": "Download exact nupkg, verify SHA256 and byte length, then install from the verified local archive"
+    }
+  },
+  "actions": {
+    "actions/checkout": { "ref": "11bd71901bbe5b1630ceea73d27597364c9af683" },
+    "actions/upload-artifact": { "ref": "ea165f8d65b6e75b540449e92b4886f43607fa02" },
+    "actions/download-artifact": { "ref": "d3f86a106a0bac45b974a628896c90dbdf5c8093" }
+  },
+  "policy": {
+    "floatingRefs": false,
+    "offlineTestDefault": true,
+    "formalInstallerInPullRequest": false
+  }
+}
